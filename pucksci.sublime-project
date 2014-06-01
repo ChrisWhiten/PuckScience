@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "."
+		}
+	],
+	"build_systems":
+	[
+		{
+			"name": "Run Python Venv",
+			"working_dir": "C:\\Projects\\PuckScience",
+			"cmd": ["C:\\Projects\\PuckScience\\venv\\Scripts\\python.exe", "$file"]
+		}
+	]
+}
