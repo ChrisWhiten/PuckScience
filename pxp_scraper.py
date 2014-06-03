@@ -23,7 +23,7 @@ class PlayByPlayEvent:
             s += "(" + key + ") : " + self.home_players[key] + "\n"
         s += "Away players: \n"
         for key in self.away_players.keys():
-            s += "(" + key + ") : " + self.away_players[key] + "\n" 
+            s += "(" + key + ") : " + self.away_players[key] + "\n"
         return s
 
 class PlayByPlayScraper:
@@ -50,7 +50,20 @@ class PlayByPlayScraper:
     def parseEventRow(self, row):
         event = PlayByPlayEvent()
         #print row.prettify()
+        prefix = ""
+        penalty_prefix = ""
         elems = row.findChildren("td", { "class" : " + bborder"})
+
+        if len(elems) < 1:
+            elems = row.findChildren("td", { "class" : "penalty + bborder"})
+            prefix = "penalty"
+            penalty_prefix = "italicize + bold"
+
+        if len(elems) < 1:
+            elems = row.findChildren("td", { "class" : "goal + bborder"})
+            prefix = "goal"
+            penalty_prefix = "bold"
+
         # even number.
         event_number = elems[0].contents[0].encode('utf-8').strip()
         event.event_number = event_number
@@ -74,17 +87,23 @@ class PlayByPlayScraper:
         event_details = self.parseEventDetails(elems[5])
         event.event_details = event_details
 
-        hoi_elem = row.findChildren("td", { "class" : " + bborder + rborder"})[0]
+        # players on ice.
+        hoi_elem = row.findChildren("td", { "class" : penalty_prefix + " + bborder + rborder"})[0]
         home_on_ice = self.parseOnIce(hoi_elem)
         event.home_players = home_on_ice
 
-        away_on_ice = self.parseOnIce(elems[6])
+        if penalty_prefix == "":
+            aoi_elem = elems[6]
+        else:
+            aoi_elem = row.findChildren("td", { "class" : penalty_prefix + " + bborder"})[0]
+
+        away_on_ice = self.parseOnIce(aoi_elem)
         event.away_players = away_on_ice
 
         return event
 
     def scrape(self, url):
-        """ 
+        """
             Here's the general algorithm...
             - perform these actions for EACH <table> within <body>
             - hit each <tr class="evenColor">
@@ -115,5 +134,5 @@ class PlayByPlayScraper:
 
 if __name__ == '__main__':
     scraper = PlayByPlayScraper()
-    events = scraper.scrape("http://www.nhl.com/scores/htmlreports/20132014/PL030316.HTM")
+    events = scraper.scrape("http://www.nhl.com/scores/htmlreports/20132014/PL020454.HTM")
     #print contents
